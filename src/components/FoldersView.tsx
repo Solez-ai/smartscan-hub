@@ -41,10 +41,6 @@ export const FoldersView = () => {
     const updatedFolders = [newFolder, ...folders];
     saveFolders(updatedFolders);
     
-    toast("Folder created successfully!", {
-      description: `Created "${newFolderName}"`
-    });
-    
     setNewFolderName("");
     setShowNewFolderInput(false);
   };

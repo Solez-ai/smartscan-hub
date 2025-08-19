@@ -37,7 +37,7 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
         <div className="space-y-4">
           <Button 
             onClick={handleGetStarted}
-            className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-scanner-blue to-scanner-purple hover:from-scanner-blue/90 hover:to-scanner-purple/90 text-white rounded-xl shadow-lg"
+            className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-scanner-blue to-scanner-purple hover:from-scanner-blue/90 hover:to-scanner-purple/90 text-white rounded-xl shadow-lg transition-all duration-300"
           >
             {hasVisitedBefore ? "Launch App" : "Get Started"}
           </Button>

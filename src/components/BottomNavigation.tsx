@@ -1,4 +1,4 @@
-import { Camera, FolderOpen, File, Share2 } from "lucide-react";
+import { Camera, FolderOpen, File, Share2, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface BottomNavigationProps {
@@ -31,6 +31,12 @@ export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationPro
       icon: Share2,
       label: "Share",
       color: "scanner-green"
+    },
+    {
+      id: "suitedash",
+      icon: Building2,
+      label: "SuiteDash",
+      color: "scanner-blue"
     }
   ];
 

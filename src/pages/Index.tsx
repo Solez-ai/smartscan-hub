@@ -5,6 +5,7 @@ import { DocumentScanner } from "@/components/DocumentScanner";
 import { FoldersView } from "@/components/FoldersView";
 import { FilesView } from "@/components/FilesView";
 import { ShareView } from "@/components/ShareView";
+import { SuiteDashView } from "@/components/SuiteDashView";
 
 const Index = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -28,6 +29,8 @@ const Index = () => {
         return <FilesView />;
       case "share":
         return <ShareView />;
+      case "suitedash":
+        return <SuiteDashView />;
       default:
         return <DocumentScanner />;
     }

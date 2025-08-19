@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,32 +23,38 @@ export const ShareView = () => {
   const [employees, setEmployees] = useState<string[]>([]);
   const [newEmployee, setNewEmployee] = useState("");
 
+  useEffect(() => {
+    const savedEmployees = JSON.parse(localStorage.getItem("employees") || "[]");
+    setEmployees(savedEmployees);
+  }, []);
+
+  const saveEmployees = (updatedEmployees: string[]) => {
+    setEmployees(updatedEmployees);
+    localStorage.setItem("employees", JSON.stringify(updatedEmployees));
+  };
+
   const handleAddEmployee = () => {
     if (!newEmployee.trim()) return;
     
-    setEmployees([...employees, newEmployee.trim()]);
+    const updatedEmployees = [...employees, newEmployee.trim()];
+    saveEmployees(updatedEmployees);
     setNewEmployee("");
-    toast("Employee added", {
-      description: `Added ${newEmployee} to share list`
-    });
+  };
+
+  const handleRemoveEmployee = (index: number) => {
+    const updatedEmployees = employees.filter((_, i) => i !== index);
+    saveEmployees(updatedEmployees);
   };
 
   const handleSendFiles = async () => {
     if (selectedFiles === 0) {
-      toast("No files selected", {
-        description: "Please select files to share"
-      });
       return;
     }
 
     setIsSharing(true);
     
-    // Simulate file sending
+    // Simulate file sending to employees
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    toast("Files sent successfully!", {
-      description: `Shared ${selectedFiles} files with ${employees.length} employees`
-    });
     
     setIsSharing(false);
     setSelectedFiles(0);
@@ -58,9 +64,36 @@ export const ShareView = () => {
   const handleGenerateShareLink = () => {
     const shareLink = `https://smartscan.app/share/${Date.now()}`;
     navigator.clipboard.writeText(shareLink);
-    toast("Share link copied!", {
-      description: "Link copied to clipboard"
-    });
+  };
+
+  const handleWebShare = async (platform: string) => {
+    const files = Array.from({ length: selectedFiles }, (_, i) => 
+      new File([`File ${i + 1} content`], `document_${i + 1}.pdf`, { type: 'application/pdf' })
+    );
+
+    if (navigator.share && files.length > 0) {
+      try {
+        await navigator.share({
+          title: 'Documents from SmartScan Hub',
+          text: message || 'Shared documents',
+          files: files
+        });
+      } catch (error) {
+        // Fallback for platforms that don't support file sharing
+        const shareData = {
+          title: 'Documents from SmartScan Hub',
+          text: message || 'Shared documents',
+          url: `https://smartscan.app/share/${Date.now()}`
+        };
+        
+        if (navigator.share) {
+          await navigator.share(shareData);
+        } else {
+          // Final fallback - copy link
+          navigator.clipboard.writeText(shareData.url);
+        }
+      }
+    }
   };
 
   return (
@@ -76,15 +109,22 @@ export const ShareView = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold text-scanner-green">Share with Employees</h3>
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => setNewEmployee("employee@company.com")}
-              className="border-scanner-green/30 text-scanner-green hover:bg-scanner-green/10 rounded-lg"
-            >
-              <UserPlus className="w-4 h-4 mr-2" />
-              Add Employee
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Input
+                placeholder="Enter employee email..."
+                value={newEmployee}
+                onChange={(e) => setNewEmployee(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && handleAddEmployee()}
+                className="flex-1 h-10 rounded-lg border-scanner-green/20 focus:border-scanner-green"
+              />
+              <Button 
+                onClick={handleAddEmployee}
+                disabled={!newEmployee.trim()}
+                className="bg-scanner-green hover:bg-scanner-green/90 text-white rounded-lg h-10 px-4"
+              >
+                <UserPlus className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
           {employees.length > 0 && (
@@ -95,10 +135,12 @@ export const ShareView = () => {
                   <Badge 
                     key={index}
                     variant="secondary"
-                    className="bg-scanner-green/10 text-scanner-green"
+                    className="bg-scanner-green/10 text-scanner-green cursor-pointer hover:bg-red-100 hover:text-red-700 transition-colors"
+                    onClick={() => handleRemoveEmployee(index)}
                   >
                     <Users className="w-3 h-3 mr-1" />
                     {employee}
+                    <span className="ml-1 text-xs">×</span>
                   </Badge>
                 ))}
               </div>
@@ -145,7 +187,7 @@ export const ShareView = () => {
             <Button 
               variant="outline"
               className="h-16 flex flex-col items-center justify-center space-y-1 border-scanner-green/30 text-scanner-green hover:bg-scanner-green/10 rounded-xl"
-              onClick={() => toast("WhatsApp share opened")}
+              onClick={() => handleWebShare("whatsapp")}
             >
               <MessageSquare className="w-6 h-6" />
               <span className="text-sm font-medium">WhatsApp</span>
@@ -154,7 +196,7 @@ export const ShareView = () => {
             <Button 
               variant="outline"
               className="h-16 flex flex-col items-center justify-center space-y-1 border-scanner-green/30 text-scanner-green hover:bg-scanner-green/10 rounded-xl"
-              onClick={() => toast("Email share opened")}
+              onClick={() => handleWebShare("email")}
             >
               <Mail className="w-6 h-6" />
               <span className="text-sm font-medium">Email</span>
@@ -163,7 +205,7 @@ export const ShareView = () => {
             <Button 
               variant="outline"
               className="h-16 flex flex-col items-center justify-center space-y-1 border-scanner-green/30 text-scanner-green hover:bg-scanner-green/10 rounded-xl"
-              onClick={() => toast("Social share opened")}
+              onClick={() => handleWebShare("social")}
             >
               <Share className="w-6 h-6" />
               <span className="text-sm font-medium">Social</span>
